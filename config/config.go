@@ -1,5 +1,7 @@
 package config
 
-func N8N_URL() string {
-	return ""
+import "os"
+
+func ApiUrl() string {
+	return os.Getenv("API_URL")
 }

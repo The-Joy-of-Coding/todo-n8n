@@ -6,10 +6,6 @@ import (
 )
 
 func TestApiUrl(t *testing.T) {
-	// This needs to test if there is a function called ApiUrl.
-	// then check if it returns a string or not.
-	// then check if the string is empty or not
-	// then check if the string is in https format or not to pass this test.
 	result := ApiUrl()
 
 	if result == "" {
