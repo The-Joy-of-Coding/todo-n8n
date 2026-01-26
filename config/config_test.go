@@ -69,7 +69,7 @@ func TestPing(t *testing.T) {
 		if res != test.result {
 			t.Errorf("Result mismatch: got %v, want %v please check your code!", res, test.result)
 		}
-		if statusCode >= 300 && res {
+		if (statusCode >= 300 || statusCode < 200) && res {
 			t.Error("Test returned true for a non-ok status code")
 		}
 	}
@@ -81,10 +81,12 @@ func TestPing(t *testing.T) {
 }
 
 func TestDefaults(t *testing.T) {
-	if Default.URL == "" {
-		t.Errorf("expected URL to be populated, got %q", Default.URL)
+	var url string = _default.Url()
+	if url == "" {
+		t.Errorf("expected URL to be populated, got %q", url)
 	}
-	if Default.Timeout == 0 {
-		t.Errorf("expected Timeout to be non-zero, got %v", Default.Timeout)
+	var timeout int = int(_default.timeOut())
+	if timeout <= 0 {
+		t.Errorf("expected Timeout to be non-zero, got %v", timeout)
 	}
 }
