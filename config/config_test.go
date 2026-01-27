@@ -1,8 +1,6 @@
 package config
 
 import (
-	"bytes"
-	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -21,10 +19,9 @@ func TestApiUrl(t *testing.T) {
 		{"SECURE URL", "SECURE_API", ""},
 	}
 	testFunc := func(test Test, t *testing.T) {
-		var buf bytes.Buffer
-		l := slog.New(slog.NewJSONHandler(&buf, nil))
-		res := ApiUrl(l, test.inputUrl)
-		if !strings.Contains(buf.String(), test.matchLog) {
+		buff := SetLogger(true)
+		res := ApiUrl(test.inputUrl)
+		if !strings.Contains(buff.Buff.String(), test.matchLog) {
 			t.Errorf("Missing log \"%s\" to indicate user!", test.matchLog)
 		}
 		if res == "" {
@@ -60,10 +57,9 @@ func TestPing(t *testing.T) {
 		{"VALID URL", server.URL, true, ""},
 	}
 	testFunc := func(test Test, t *testing.T) {
-		var buf bytes.Buffer
-		l := slog.New(slog.NewJSONHandler(&buf, nil))
-		res, statusCode := ping(l, test.inputUrl)
-		if !strings.Contains(buf.String(), test.matchLog) {
+		buff := SetLogger(true)
+		res, statusCode := ping(test.inputUrl)
+		if !strings.Contains(buff.Buff.String(), test.matchLog) {
 			t.Errorf("Missing log \"%s\" to indicate user!", test.matchLog)
 		}
 		if res != test.result {
