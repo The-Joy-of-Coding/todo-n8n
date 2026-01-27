@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-type ConfigDefault struct {
+type configDefault struct {
 	URL     string `json:"url"`
 	Timeout int    `json:"timeout"`
 }
@@ -18,7 +18,7 @@ type ConfigDefault struct {
 var (
 	//go:embed defaults.json
 	file     []byte
-	_default ConfigDefault
+	_default configDefault
 )
 
 func init() {
@@ -49,12 +49,12 @@ func ping(logger *slog.Logger, url string) (bool, int) {
 		return false, 0
 	}
 	client := http.Client{
-		Timeout: _default.timeOut(),
+		Timeout: TimeOut(),
 	}
 	resp, err := client.Head(url)
 	if err != nil {
 		logger.Error("Network error occured, please try again later or check again!")
-		return false, resp.StatusCode
+		return false, 0
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode > 300 {
@@ -64,19 +64,19 @@ func ping(logger *slog.Logger, url string) (bool, int) {
 	return true, resp.StatusCode
 }
 
-func (c *ConfigDefault) timeOut() time.Duration {
+func TimeOut() time.Duration {
 	timeOut := 5 * time.Second
 	if _default.Timeout > 0 {
-		timeOut = time.Duration(c.Timeout) * time.Second
+		timeOut = time.Duration(_default.Timeout) * time.Second
 	}
 	return timeOut
 }
 
-func (c *ConfigDefault) Url() string {
+func (c *configDefault) Url() string {
 	if c.URL == "" {
 		return "http://localhost:5678"
 	}
-	if ok, _ := ping(slog.Default(), c.URL); !ok {
+	if ok, _ := ping(slog.Default(), _default.URL); !ok {
 		return "http://localhost:5678"
 	}
 	return c.URL

@@ -85,7 +85,7 @@ func TestDefaults(t *testing.T) {
 	if url == "" {
 		t.Errorf("expected URL to be populated, got %q", url)
 	}
-	var timeout int = int(_default.timeOut())
+	var timeout int = int(TimeOut())
 	if timeout <= 0 {
 		t.Errorf("expected Timeout to be non-zero, got %v", timeout)
 	}
