@@ -1,6 +1,7 @@
 package module
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -23,22 +24,56 @@ func (t *todos) Get() {
 	tr.fetch().ParseData(t)
 }
 
-func (t *todos) Post() {
+func (t *todos) Post(task string) {
+	data := map[string]string{"data": task}
+	jsonBody, err := json.Marshal(data)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	req, err := http.NewRequest(
+		"POST", config.ApiUrl(""),
+		bytes.NewReader(jsonBody),
+	)
+	tr := Transport{request: req}
+	tr.fetch().ParseData(nil)
 	t.Get()
-} // Post will add a new todo to the todos via api.
+}
 
-func (t *todos) Put() {
+func (t *todos) Put(id int) {
+	data := map[string]int{"id": id}
+	jsonBody, err := json.Marshal(data)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	req, err := http.NewRequest(
+		"PUT", config.ApiUrl(""),
+		bytes.NewReader(jsonBody),
+	)
+	tr := Transport{request: req}
+	tr.fetch().ParseData(nil)
 	t.Get()
-} // Put will mark the required todo as checked via api.
+}
 
-func (t *todos) Delete() {
+func (t *todos) Delete(id int) {
+	data := map[string]int{"id": id}
+	jsonBody, err := json.Marshal(data)
+	if err != nil {
+		slog.Error(err.Error())
+	}
+	req, err := http.NewRequest(
+		"DELETE", config.ApiUrl(""),
+		bytes.NewReader(jsonBody),
+	)
+	tr := Transport{request: req}
+	tr.fetch().ParseData(nil)
 	t.Get()
-} // Delete will delete the todo from todos via api.
+}
 
 func (t *Transport) fetch() *Transport {
 	client := http.Client{
 		Timeout: config.TimeOut(),
 	}
+	t.request.Header.Add("", "")
 	resp, err := client.Do(t.request)
 	if err != nil {
 		slog.Error(err.Error())
@@ -48,7 +83,7 @@ func (t *Transport) fetch() *Transport {
 	return t
 }
 
-func (t *Transport) ParseData(target interface{}) error {
+func (t *Transport) ParseData(target any) error {
 	if t.responce == nil || t.responce.Body == nil {
 		err := "no response body available to parse"
 		slog.Error(err)
