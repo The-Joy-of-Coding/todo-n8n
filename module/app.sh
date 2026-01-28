@@ -18,7 +18,7 @@ todo_footer() {
 
 todo_menu() {
   local selected=0
-  local options=("List", "Add", "Check", "Delete", "Quit")
+  local options=("List" "Add" "Check" "Delete" "Quit")
   local message=""
   while true; do
     tput cup 3 0
