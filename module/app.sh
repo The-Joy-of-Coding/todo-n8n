@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# 1. Fixed the typo (lines vs line)
 get_footer_row() {
   echo $(($(tput lines) - 2))
 }
