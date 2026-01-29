@@ -86,3 +86,29 @@ func TestDefaults(t *testing.T) {
 		t.Errorf("expected Timeout to be non-zero, got %v", timeout)
 	}
 }
+
+func TestEnv(t *testing.T) {
+	type Test struct {
+		name     string
+		inputEnv string
+		outPut   bool
+	}
+	tests := []Test{
+		{"ENV EMPTY", "test", false},
+		{"ENV NOT EMPTY", "INSECURE_API", true},
+	}
+	testFunc := func(test Test, t *testing.T) {
+		res, err := GetEnv(test.inputEnv)
+		if (err != nil) && test.outPut {
+			t.Errorf("Somthing went wrong in your code, please check the GetEnv function, err: %s", err.Error())
+		}
+		if (res != "") != test.outPut {
+			t.Errorf("Test out put is not same, please check your logic!")
+		}
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			testFunc(tc, t)
+		})
+	}
+}

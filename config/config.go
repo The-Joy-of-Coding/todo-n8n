@@ -4,6 +4,7 @@ import (
 	"bytes"
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -31,6 +32,14 @@ func init() {
 	if err := json.Unmarshal(file, &_default); err != nil {
 		slog.Error(err.Error())
 	}
+}
+
+func GetEnv(env string) (string, error) {
+	res := os.Getenv(env)
+	if res == "" {
+		return res, fmt.Errorf("The result is empty!")
+	}
+	return res, nil
 }
 
 func ApiUrl(url_key string) string {
