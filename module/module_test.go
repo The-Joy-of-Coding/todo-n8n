@@ -20,11 +20,11 @@ func TestFetch(t *testing.T) {
 	req, _ := http.NewRequest("GET", server.URL, nil)
 	trans := Transport{request: req}
 	trans.fetch()
-	if trans.responce == nil {
+	if trans.response == nil {
 		t.Fatalf("Fetch failed: response is nil. Logs: %s", buff.Buff.String())
 	}
-	if trans.responce.StatusCode != http.StatusOK {
-		t.Errorf("Expected 200, got %d", trans.responce.StatusCode)
+	if trans.response.StatusCode != http.StatusOK {
+		t.Errorf("Expected 200, got %d", trans.response.StatusCode)
 	}
 }
 
@@ -51,7 +51,7 @@ func TestParseData(t *testing.T) {
 					StatusCode: 200,
 					Body:       io.NopCloser(strings.NewReader(tc.json)),
 				}
-				trans.responce = res
+				trans.response = res
 			}
 			var result MockResponse
 			err := trans.ParseData(&result)
@@ -61,4 +61,3 @@ func TestParseData(t *testing.T) {
 		})
 	}
 }
-
