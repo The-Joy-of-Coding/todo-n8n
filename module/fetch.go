@@ -12,21 +12,21 @@ import (
 
 type Transport struct {
 	request  *http.Request
-	responce *http.Response
+	response *http.Response
+	error    error
 }
 
-func (t *todos) Get() {
+func (t *Todos) get() {
 	req, err := http.NewRequest("GET", config.ApiUrl(""), nil)
 	if err != nil {
 		slog.Error(err.Error())
 	}
 	tr := Transport{request: req}
-	tr.fetch().ParseData(t)
+	tr.fetch().ParseData(&todos)
 }
 
-func (t *todos) Post(task string) {
-	data := map[string]string{"data": task}
-	jsonBody, err := json.Marshal(data)
+func (t *Todos) post() {
+	jsonBody, err := json.Marshal(t)
 	if err != nil {
 		slog.Error(err.Error())
 	}
@@ -36,12 +36,11 @@ func (t *todos) Post(task string) {
 	)
 	tr := Transport{request: req}
 	tr.fetch().ParseData(nil)
-	t.Get()
+	t.get()
 }
 
-func (t *todos) Put(id int) {
-	data := map[string]int{"id": id}
-	jsonBody, err := json.Marshal(data)
+func (t *Todos) put() {
+	jsonBody, err := json.Marshal(t)
 	if err != nil {
 		slog.Error(err.Error())
 	}
@@ -51,12 +50,11 @@ func (t *todos) Put(id int) {
 	)
 	tr := Transport{request: req}
 	tr.fetch().ParseData(nil)
-	t.Get()
+	t.get()
 }
 
-func (t *todos) Delete(id int) {
-	data := map[string]int{"id": id}
-	jsonBody, err := json.Marshal(data)
+func (t *Todos) delete() {
+	jsonBody, err := json.Marshal(t)
 	if err != nil {
 		slog.Error(err.Error())
 	}
@@ -66,33 +64,42 @@ func (t *todos) Delete(id int) {
 	)
 	tr := Transport{request: req}
 	tr.fetch().ParseData(nil)
-	t.Get()
+	t.get()
 }
 
 func (t *Transport) fetch() *Transport {
 	client := http.Client{
 		Timeout: config.TimeOut(),
 	}
-	t.request.Header.Add("", "")
+	if t.request.Body != nil {
+		t.request.Header.Add("Content-Type", "application/json")
+	}
+	// t.request.Header.Add("", "")
 	resp, err := client.Do(t.request)
 	if err != nil {
 		slog.Error(err.Error())
+		t.error = err
 		return t
 	}
-	t.responce = resp
+	t.response = resp
 	return t
 }
 
 func (t *Transport) ParseData(target any) error {
-	if t.responce == nil || t.responce.Body == nil {
+	if t.error != nil {
+		return t.error
+	}
+	if t.response == nil || t.response.Body == nil {
 		err := "no response body available to parse"
 		slog.Error(err)
 		return fmt.Errorf("%s", err)
 	}
-	defer t.responce.Body.Close()
-	if err := json.NewDecoder(t.responce.Body).Decode(target); err != nil {
-		slog.Error("json decode failed", "error", err)
+	defer t.response.Body.Close()
+	if t.response.StatusCode >= 400 {
+		err := fmt.Errorf("server returned error: %d", t.response.StatusCode)
+		slog.Error(err.Error())
 		return err
 	}
-	return nil
+
+	return json.NewDecoder(t.response.Body).Decode(target)
 }
