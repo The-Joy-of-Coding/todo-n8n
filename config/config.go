@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bufio"
 	"bytes"
 	_ "embed"
 	"encoding/json"
@@ -29,9 +30,31 @@ var (
 )
 
 func init() {
+	SetLogger(false)
 	if err := json.Unmarshal(file, &_default); err != nil {
-		slog.Error(err.Error())
+		slog.Error("failed to unmarshal defaults", "error", err)
 	}
+	_ = LoadEnv(".env") || LoadEnv("../.env")
+}
+
+func LoadEnv(filename string) bool {
+	f, err := os.Open(filename)
+	if err != nil {
+		return false
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) == 2 {
+			os.Setenv(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
+		}
+	}
+	return true
 }
 
 func GetEnv(env string) (string, error) {
@@ -42,59 +65,48 @@ func GetEnv(env string) (string, error) {
 	return res, nil
 }
 
-func ApiUrl(url_key string) string {
-	url := os.Getenv(url_key)
-	if url == "" {
-		slog.Error("No valid url found!")
-		return _default.Url()
+func GetURL(key string) string {
+	val, err := GetEnv(key)
+	if err != nil {
+		slog.Error("No valid url found!", "key", key)
+		val, err = GetEnv("API_URL")
+		if err != nil {
+			return "http://localhost:5678"
+		}
 	}
-	if !strings.HasPrefix(url, "https://") {
+	if val == "" {
+		return "http://localhost:5678"
+	}
+	if !strings.HasPrefix(val, "https://") {
 		slog.Warn("Using insecure api endpoint.")
 	}
-	if ok, _ := ping(url); !ok {
-		slog.Error("Url is invalid, please change the url to run the application.")
-		return ApiUrl(_default.URLENV)
-	}
-	return url
+	return val
 }
 
-func ping(url string) (bool, int) {
-	if url == "" {
+func ping(targetURL string) (bool, int) {
+	if targetURL == "" {
 		slog.Error("URL is empty, please provide a proper url!")
 		return false, 0
 	}
-	client := http.Client{
-		Timeout: TimeOut(),
-	}
-	resp, err := client.Head(url)
+	client := http.Client{Timeout: GetTimeout()}
+	resp, err := client.Head(targetURL)
 	if err != nil {
 		slog.Error("Network error occured, please try again later or check again!")
 		return false, 0
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode > 300 {
-		slog.Error("URL is invalid, please check the url provided.")
-		return false, http.StatusNotFound
+	if resp.StatusCode >= 400 {
+		slog.Error("URL is invalid, please check the url provided.", "status", resp.StatusCode)
+		return false, resp.StatusCode
 	}
 	return true, resp.StatusCode
 }
 
-func TimeOut() time.Duration {
-	timeOut := 5 * time.Second
+func GetTimeout() time.Duration {
 	if _default.Timeout > 0 {
-		timeOut = time.Duration(_default.Timeout) * time.Second
+		return time.Duration(_default.Timeout) * time.Second
 	}
-	return timeOut
-}
-
-func (c *configDefault) Url() string {
-	if c.URL == "" {
-		return "http://localhost:5678"
-	}
-	if ok, _ := ping(_default.URL); !ok {
-		return "http://localhost:5678"
-	}
-	return c.URL
+	return 10 * time.Second
 }
 
 func SetLogger(test bool) *Test {

@@ -3,6 +3,8 @@ package config
 import (
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -20,7 +22,7 @@ func TestApiUrl(t *testing.T) {
 	}
 	testFunc := func(test Test, t *testing.T) {
 		buff := SetLogger(true)
-		res := ApiUrl(test.inputUrl)
+		res := GetURL(test.inputUrl)
 		if !strings.Contains(buff.Buff.String(), test.matchLog) {
 			t.Errorf("Missing log \"%s\" to indicate user!", test.matchLog)
 		}
@@ -77,11 +79,11 @@ func TestPing(t *testing.T) {
 }
 
 func TestDefaults(t *testing.T) {
-	var url string = _default.Url()
+	var url string = GetURL("")
 	if url == "" {
 		t.Errorf("expected URL to be populated, got %q", url)
 	}
-	var timeout int = int(TimeOut())
+	var timeout int = int(GetTimeout())
 	if timeout <= 0 {
 		t.Errorf("expected Timeout to be non-zero, got %v", timeout)
 	}
@@ -104,6 +106,68 @@ func TestEnv(t *testing.T) {
 		}
 		if (res != "") != test.outPut {
 			t.Errorf("Test out put is not same, please check your logic!")
+		}
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			testFunc(tc, t)
+		})
+	}
+}
+
+func TestLoadEnv(t *testing.T) {
+	tmpDir := t.TempDir()
+	type Test struct {
+		name     string
+		filename string
+		content  string
+		wantErr  bool
+		checkKey string
+		wantVal  string
+	}
+	tests := []Test{
+		{
+			name:     "VALID FILE",
+			filename: "valid.env",
+			content:  "TEST_KEY=hello_world\nANOTHER_VAR=123",
+			wantErr:  false,
+			checkKey: "TEST_KEY",
+			wantVal:  "hello_world",
+		},
+		{
+			name:     "NOISY FILE",
+			filename: "noisy.env",
+			content:  "\n# comment\n  SPACED_KEY = value  \n\n",
+			wantErr:  false,
+			checkKey: "SPACED_KEY",
+			wantVal:  "value",
+		},
+		{
+			name:     "MISSING FILE",
+			filename: "missing.env",
+			content:  "",
+			wantErr:  true,
+		},
+	}
+	testFunc := func(tc Test, t *testing.T) {
+		path := filepath.Join(tmpDir, tc.filename)
+		if tc.name != "MISSING FILE" {
+			err := os.WriteFile(path, []byte(tc.content), 0o644)
+			if err != nil {
+				t.Fatalf("Setup failed: %v", err)
+			}
+		}
+		ok := LoadEnv(path)
+		if !ok != tc.wantErr {
+			t.Errorf("LoadEnv() error = %v, wantErr %v", ok, tc.wantErr)
+			return
+		}
+		if tc.checkKey != "" {
+			gotVal := os.Getenv(tc.checkKey)
+			if gotVal != tc.wantVal {
+				t.Errorf("Env mismatch: got %q, want %q", gotVal, tc.wantVal)
+			}
+			os.Unsetenv(tc.checkKey)
 		}
 	}
 	for _, tc := range tests {
