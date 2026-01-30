@@ -2,10 +2,13 @@ package module
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"todo-n8n/config"
 )
@@ -16,65 +19,106 @@ type Transport struct {
 	error    error
 }
 
-func (t *Todos) get() {
-	req, err := http.NewRequest("GET", config.ApiUrl(""), nil)
+var (
+	client http.Client = http.Client{
+		Timeout: config.GetTimeout(),
+	}
+	header string
+	key    string
+)
+
+func init() {
+	var err error
+	header, err = config.GetEnv("AUTH_HEADER")
 	if err != nil {
 		slog.Error(err.Error())
+		os.Exit(1)
 	}
-	tr := Transport{request: req}
-	tr.fetch().ParseData(&todos)
+	key, err = config.GetEnv("AUTH_KEY")
+	if err != nil {
+		slog.Error(err.Error())
+		os.Exit(1)
+	}
 }
 
-func (t *Todos) post() {
-	jsonBody, err := json.Marshal(t)
-	if err != nil {
-		slog.Error(err.Error())
-	}
-	req, err := http.NewRequest(
-		"POST", config.ApiUrl(""),
-		bytes.NewReader(jsonBody),
-	)
-	tr := Transport{request: req}
-	tr.fetch().ParseData(nil)
-	t.get()
+func (t *Todos) get() (N8nRespnce, error) {
+	var n8n N8nRespnce
+	tr := Transport{}
+	return n8n, tr.
+		createRequest("GET", nil).
+		fetch().
+		ParseData(&n8n)
 }
 
-func (t *Todos) put() {
-	jsonBody, err := json.Marshal(t)
+func (t *Todos) post() error {
+	tr := Transport{}
+	err := tr.
+		createRequest("POST", t).
+		fetch().
+		ParseData(nil)
 	if err != nil {
-		slog.Error(err.Error())
+		return err
 	}
-	req, err := http.NewRequest(
-		"PUT", config.ApiUrl(""),
-		bytes.NewReader(jsonBody),
-	)
-	tr := Transport{request: req}
-	tr.fetch().ParseData(nil)
-	t.get()
+	return nil
 }
 
-func (t *Todos) delete() {
-	jsonBody, err := json.Marshal(t)
+func (t *Todos) put() error {
+	tr := Transport{}
+	err := tr.
+		createRequest("PUT", t).
+		fetch().
+		ParseData(nil)
 	if err != nil {
-		slog.Error(err.Error())
+		return err
+	}
+	return nil
+}
+
+func (t *Todos) delete() error {
+	tr := Transport{}
+	err := tr.
+		createRequest("DELETE", t).
+		fetch().
+		ParseData(nil)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (t *Transport) createRequest(method string, body any) *Transport {
+	if t.error != nil {
+		return t
+	}
+	var jsonBody []byte
+	var err error
+	if body != nil {
+		jsonBody, err = json.Marshal(body)
+		if err != nil {
+			slog.Error(err.Error())
+			t.error = err
+			return t
+		}
 	}
 	req, err := http.NewRequest(
-		"DELETE", config.ApiUrl(""),
+		method, config.GetURL("API_URL"),
 		bytes.NewReader(jsonBody),
 	)
-	tr := Transport{request: req}
-	tr.fetch().ParseData(nil)
-	t.get()
+	if err != nil {
+		slog.Error(err.Error())
+		t.error = err
+		return t
+	}
+	t.request = req
+	return t
 }
 
 func (t *Transport) fetch() *Transport {
-	client := http.Client{
-		Timeout: config.TimeOut(),
-	}
-	if t.request.Body != nil {
-		t.request.Header.Add("Content-Type", "application/json")
-	}
-	// t.request.Header.Add("", "")
+	ctx, cancel := context.WithTimeout(context.Background(), config.GetTimeout())
+	defer cancel()
+	t.request.WithContext(ctx)
+	t.request.Header.Add("Content-Type", "application/json")
+	t.request.Header.Add(header, key)
 	resp, err := client.Do(t.request)
 	if err != nil {
 		slog.Error(err.Error())
@@ -100,6 +144,16 @@ func (t *Transport) ParseData(target any) error {
 		slog.Error(err.Error())
 		return err
 	}
-
-	return json.NewDecoder(t.response.Body).Decode(target)
+	if target == nil {
+		return fmt.Errorf("Target is empty!")
+	}
+	bodyBytes, err := io.ReadAll(t.response.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read body: %w", err)
+	}
+	if err := json.Unmarshal(bodyBytes, target); err != nil {
+		slog.Error("JSON unmarshal failed", "err", err, "body", string(bodyBytes))
+		return err
+	}
+	return nil
 }

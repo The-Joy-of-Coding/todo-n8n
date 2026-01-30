@@ -1,21 +1,45 @@
 package module
 
+import (
+	"log/slog"
+)
+
 type Todos struct {
 	Id   int    `json:"id"`
 	Task string `json:"task"`
 }
 
-var todos []Todos
+type N8nRespnce struct {
+	TodoList []Todos `json:"todo_list"`
+}
 
-func init() {
-	todo := Todos{}
-	todo.get()
+func getSafeTodos() []Todos {
+	fail := make(chan N8nRespnce)
+	go func(fail chan N8nRespnce) {
+		todo := Todos{}
+		res, err := todo.get()
+		if err != nil {
+			slog.Error(err.Error())
+			fail <- res
+			return
+		}
+		fail <- res
+	}(fail)
+	res := <-fail
+	if len(res.TodoList) == 0 {
+		return nil
+	}
+	slog.Info("Todos", "List", res.TodoList)
+	return res.TodoList
 }
 
 func AddTask(task string) []Todos {
 	todo := Todos{Task: task}
-	todo.post()
-	return todos
+	if err := todo.post(); err != nil {
+		slog.Error(err.Error())
+		return getSafeTodos()
+	}
+	return getSafeTodos()
 }
 
 func CheckOrDeleteTask(id int, isCheck bool) []Todos {
@@ -25,7 +49,7 @@ func CheckOrDeleteTask(id int, isCheck bool) []Todos {
 	} else {
 		todo.delete()
 	}
-	return todos
+	return getSafeTodos()
 }
 
 func Default() {}

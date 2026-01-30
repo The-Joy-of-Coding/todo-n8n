@@ -61,3 +61,74 @@ func TestParseData(t *testing.T) {
 		})
 	}
 }
+
+func TestTodoLifecycle(t *testing.T) {
+	type Test struct {
+		name     string
+		taskName string
+		isCheck  bool
+		wantLog  string
+	}
+	var testTaskID int
+	testFunc := func(tc Test, t *testing.T) {
+		_ = config.SetLogger(true)
+		switch tc.name {
+		case "POST TASK":
+			res := AddTask(tc.taskName)
+			found := false
+			for _, item := range res {
+				if item.Task == tc.taskName {
+					testTaskID = item.Id
+					found = true
+				}
+			}
+			if !found || testTaskID == 0 {
+				t.Errorf("Failed to create or find task: %s", tc.taskName)
+			}
+		case "PUT TASK":
+			if testTaskID == 0 {
+				t.Skip("No ID available from POST")
+			}
+			res := CheckOrDeleteTask(testTaskID, true)
+			found := false
+			for _, item := range res {
+				if item.Id == testTaskID {
+					found = true
+				}
+			}
+			if !found {
+				t.Errorf("Task ID %d disappeared after PUT", testTaskID)
+			}
+		case "GET TASKS":
+			todo := Todos{}
+			todos, err := todo.get()
+			if err != nil {
+				t.Errorf("GET failed: %v", err)
+			}
+			if len(todos.TodoList) == 0 {
+				t.Error("Todos slice is empty after GET")
+			}
+		case "DELETE TASK":
+			if testTaskID == 0 {
+				t.Skip("No ID available from POST")
+			}
+			res := CheckOrDeleteTask(testTaskID, false)
+			for _, item := range res {
+				if item.Id == testTaskID {
+					t.Errorf("Task ID %d still exists after DELETE", testTaskID)
+				}
+			}
+		}
+	}
+	tests := []Test{
+		{name: "POST TASK", taskName: "N8N Integration Test"},
+		{name: "PUT TASK", isCheck: true},
+		{name: "GET TASKS"},
+		{name: "DELETE TASK", isCheck: false},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			testFunc(tc, t)
+		})
+	}
+}
