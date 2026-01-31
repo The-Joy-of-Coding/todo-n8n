@@ -1,5 +1,3 @@
-#!/bin/bash
-
 get_footer_row() {
   echo $(($(tput lines) - 2))
 }
@@ -71,5 +69,3 @@ todo_start() {
   tput clear
   tput cnorm  
 }
-
-todo_start
