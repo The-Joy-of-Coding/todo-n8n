@@ -89,7 +89,7 @@ func ping(targetURL string) (bool, int) {
 		return false, 0
 	}
 	client := http.Client{Timeout: GetTimeout()}
-	resp, err := client.Head(targetURL)
+	resp, err := client.Get(targetURL)
 	if err != nil {
 		slog.Error("Network error occured, please try again later or check again!")
 		return false, 0
