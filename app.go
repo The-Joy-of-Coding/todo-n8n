@@ -1,19 +1,25 @@
 package main
 
 import (
+	"flag"
 	"log/slog"
 
-	"todo-n8n/config"
+	"todo-n8n/module"
 )
 
 func main() {
-	apiUrl, err := config.GetEnv("API_URL")
-	header, err := config.GetEnv("AUTH_HEADER")
-	key, err := config.GetEnv("AUTH_KEY")
-	if err != nil {
+	addData := flag.String("add", "*/*-", "Give task details to add to todo")
+	deleteData := flag.Int("delete", 0, "Give task id to delete the todo")
+	flag.Parse()
+	if *addData != "*/*-" && *addData != "" {
+		slog.Info("Task", "details", *addData)
+		return
+	}
+	if *deleteData != 0 {
+		slog.Info("Id", "details", *deleteData)
+		return
+	}
+	if err := module.Default(); err != nil {
 		slog.Error(err.Error())
 	}
-	slog.Info(apiUrl)
-	slog.Info(header)
-	slog.Info(key)
 }
