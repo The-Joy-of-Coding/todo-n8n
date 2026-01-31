@@ -62,73 +62,44 @@ func TestParseData(t *testing.T) {
 	}
 }
 
-func TestTodoLifecycle(t *testing.T) {
-	type Test struct {
-		name     string
-		taskName string
-		isCheck  bool
-		wantLog  string
-	}
-	var testTaskID int
-	testFunc := func(tc Test, t *testing.T) {
-		_ = config.SetLogger(true)
-		switch tc.name {
-		case "POST TASK":
-			res := AddTask(tc.taskName)
-			found := false
-			for _, item := range res {
-				if item.Task == tc.taskName {
-					testTaskID = item.Id
-					found = true
-				}
-			}
-			if !found || testTaskID == 0 {
-				t.Errorf("Failed to create or find task: %s", tc.taskName)
-			}
-		case "PUT TASK":
-			if testTaskID == 0 {
-				t.Skip("No ID available from POST")
-			}
-			res := CheckOrDeleteTask(testTaskID, true)
-			found := false
-			for _, item := range res {
-				if item.Id == testTaskID {
-					found = true
-				}
-			}
-			if !found {
-				t.Errorf("Task ID %d disappeared after PUT", testTaskID)
-			}
-		case "GET TASKS":
-			todo := Todos{}
-			todos, err := todo.get()
-			if err != nil {
-				t.Errorf("GET failed: %v", err)
-			}
-			if len(todos.TodoList) == 0 {
-				t.Error("Todos slice is empty after GET")
-			}
-		case "DELETE TASK":
-			if testTaskID == 0 {
-				t.Skip("No ID available from POST")
-			}
-			res := CheckOrDeleteTask(testTaskID, false)
-			for _, item := range res {
-				if item.Id == testTaskID {
-					t.Errorf("Task ID %d still exists after DELETE", testTaskID)
-				}
+func TestRequest(t *testing.T) {
+	testCase := Todos{Task: "This is a test request from go."}
+	t.Run("POST_RESQUEST", func(t *testing.T) {
+		todo := Todos{
+			Task: testCase.Task,
+		}
+		err := todo.post()
+		if err != nil {
+			t.Errorf("POST request test failed due to: %s", err.Error())
+		}
+	})
+	t.Run("GET_REQUEST", func(t *testing.T) {
+		todo := Todos{}
+		res, err := todo.get()
+		if err != nil {
+			t.Errorf("GET requst test failed due to: %s", err.Error())
+		}
+		for _, v := range res.TodoList {
+			if v.Task == testCase.Task {
+				testCase.Id = v.Id
 			}
 		}
-	}
-	tests := []Test{
-		{name: "POST TASK", taskName: "N8N Integration Test"},
-		{name: "PUT TASK", isCheck: true},
-		{name: "GET TASKS"},
-		{name: "DELETE TASK", isCheck: false},
-	}
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			testFunc(tc, t)
-		})
-	}
+		if testCase.Id == 0 {
+			t.Errorf("GET request test failed due to: unable to find the test-case task")
+		}
+	})
+	t.Run("PUT_REQUEST", func(t *testing.T) {
+		todo := Todos{Id: testCase.Id}
+		err := todo.put()
+		if err != nil {
+			t.Errorf("PUT request test failed due to: %s", err.Error())
+		}
+	})
+	t.Run("DELETE_REQUEST", func(t *testing.T) {
+		todo := Todos{Id: testCase.Id}
+		err := todo.delete()
+		if err != nil {
+			t.Errorf("DELETE request test failed due to: %s", err.Error())
+		}
+	})
 }

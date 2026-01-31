@@ -2,7 +2,6 @@ package module
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -52,36 +51,48 @@ func (t *Todos) get() (N8nRespnce, error) {
 
 func (t *Todos) post() error {
 	tr := Transport{}
+	var res any
 	err := tr.
 		createRequest("POST", t).
 		fetch().
-		ParseData(nil)
+		ParseData(&res)
 	if err != nil {
 		return err
+	}
+	if res == nil {
+		return fmt.Errorf("Something went wrong! please check the result: %v", res)
 	}
 	return nil
 }
 
 func (t *Todos) put() error {
 	tr := Transport{}
+	var res Todos
 	err := tr.
 		createRequest("PUT", t).
 		fetch().
-		ParseData(nil)
+		ParseData(&res)
 	if err != nil {
 		return err
+	}
+	if res.Task == "" {
+		return fmt.Errorf("Something went wrong! please check the result: %v", res)
 	}
 	return nil
 }
 
 func (t *Todos) delete() error {
 	tr := Transport{}
+	var res Todos
 	err := tr.
 		createRequest("DELETE", t).
 		fetch().
-		ParseData(nil)
+		ParseData(&res)
 	if err != nil {
 		return err
+	}
+	if res.Task == "" {
+		return fmt.Errorf("Something went wrong! please check the result: %v", res)
 	}
 	return nil
 }
@@ -114,9 +125,6 @@ func (t *Transport) createRequest(method string, body any) *Transport {
 }
 
 func (t *Transport) fetch() *Transport {
-	ctx, cancel := context.WithTimeout(context.Background(), config.GetTimeout())
-	defer cancel()
-	t.request.WithContext(ctx)
 	t.request.Header.Add("Content-Type", "application/json")
 	t.request.Header.Add(header, key)
 	resp, err := client.Do(t.request)
