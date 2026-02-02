@@ -51,12 +51,16 @@ func DeleteTask(id int) {
 	}
 }
 
-func runner(script string) error {
+func runner(command string) error {
+	script := fmt.Sprintf("%s %s", app_ui, command)
 	ctx, cancel := context.WithTimeout(
-		context.Background(), time.Minute*5,
+		context.Background(),
+		time.Minute*5,
 	)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "bash", "-c", script)
+	cmd := exec.CommandContext(
+		ctx, "bash", "-c", script,
+	)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -64,7 +68,5 @@ func runner(script string) error {
 }
 
 func Default() error {
-	script := fmt.Sprintf("%s todo_start", app_ui)
-	slog.Info(script)
-	return runner(script)
+	return runner("todo_start")
 }
