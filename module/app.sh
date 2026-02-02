@@ -17,6 +17,7 @@ todo_menu() {
   local selected=0
   local options=("List" "Add" "Check" "Delete" "Quit")
   local message=""
+  local length=$((${#options[@]} - 1))
   while true; do
     tput cup 3 0
     tput el
@@ -40,8 +41,8 @@ todo_menu() {
       read -rsn2 -t 0.1 next
       [[ $next == "[A" ]] && ((selected--))
       [[ $next == "[B" ]] && ((selected++))
-      (( selected < 0 )) && selected=4
-      (( selected > 4 )) && selected=0
+      (( selected < 0 )) && selected=$length
+      (( selected > $length )) && selected=0
       continue
     fi
 
