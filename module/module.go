@@ -37,8 +37,11 @@ func AddTask(task string) {
 	}
 }
 
-func CheckTask(id int) {
+func UpdateTask(id int, task string) {
 	todo := Todos{Id: id}
+	if task != "" {
+		todo.Task = task
+	}
 	if err := todo.put(); err != nil {
 		slog.Error(err.Error())
 	}
