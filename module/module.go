@@ -22,11 +22,14 @@ type N8nRespnce struct {
 	TodoList []Todos `json:"todo_list"`
 }
 
-func GetSafeTodos() {
+func GetTodos() {
 	todo := Todos{}
-	_, err := todo.get()
+	data, err := todo.get()
 	if err != nil {
 		slog.Error(err.Error())
+	}
+	for _, v := range data.TodoList {
+		fmt.Printf("Id: %v - Task: %s\n", v.Id, v.Task)
 	}
 }
 
