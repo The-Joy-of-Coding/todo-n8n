@@ -1,18 +1,3 @@
-get_footer_row() {
-  echo $(($(tput lines) - 2))
-}
-
-todo_header() {
-  tput cup 0 0 
-  echo "--- TODO n8n ---"
-}
-
-todo_footer() {
-  local row=$(get_footer_row)
-  tput cup "$row" 0
-  echo "[q] Quit"
-}
-
 todo_menu() {
   local selected=0
   local options=("List" "Add" "Check" "Delete" "Quit")
@@ -58,15 +43,4 @@ todo_menu() {
 
     [[ $key == "q" ]] && return
   done
-}
-
-todo_start() {
-  tput civis
-  tput clear
-  
-  todo_header
-  todo_menu
-  
-  tput clear
-  tput cnorm  
 }
