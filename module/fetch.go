@@ -40,8 +40,8 @@ func init() {
 	}
 }
 
-func (t *Todos) get() (N8nRespnce, error) {
-	var n8n N8nRespnce
+func (t *Todos) get() (N8nResponse, error) {
+	var n8n N8nResponse
 	tr := Transport{}
 	return n8n, tr.
 		createRequest("GET", nil).
@@ -158,6 +158,9 @@ func (t *Transport) ParseData(target any) error {
 	bodyBytes, err := io.ReadAll(t.response.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read body: %w", err)
+	}
+	if string(bodyBytes) == "" {
+		return fmt.Errorf("Server Failed to send a response!")
 	}
 	if err := json.Unmarshal(bodyBytes, target); err != nil {
 		slog.Error("JSON unmarshal failed", "err", err, "body", string(bodyBytes))
