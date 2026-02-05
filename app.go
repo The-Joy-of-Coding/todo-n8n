@@ -19,6 +19,7 @@ func main() {
 
 func getArgs() bool {
 	var (
+		err        error
 		listTasks  = flag.Bool("list", false, "List all pending tasks")
 		addTask    = flag.String("add", "", "Add a new task description")
 		checkTask  = flag.Int("id", -1, "The ID of the task to act upon")
@@ -28,15 +29,18 @@ func getArgs() bool {
 	flag.Parse()
 	switch {
 	case *addTask != "":
-		module.AddTask(*addTask)
+		err = module.AddTask(*addTask)
 	case *deleteTask != -1:
-		module.DeleteTask(*deleteTask)
+		err = module.DeleteTask(*deleteTask)
 	case *checkTask != -1:
-		module.UpdateTask(*checkTask, *updateTask)
+		err = module.UpdateTask(*checkTask, *updateTask)
 	case *listTasks:
-		module.GetTodos()
+		err = module.GetTodos()
 	default:
 		return false
+	}
+	if err != nil {
+		slog.Error(err.Error())
 	}
 	return true
 }
