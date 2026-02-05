@@ -4,61 +4,56 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"log/slog"
 	"os"
 	"os/exec"
 	"time"
 )
-
-//go:embed app.sh
-var app_ui string
 
 type Todos struct {
 	Id   int    `json:"id"`
 	Task string `json:"task"`
 }
 
-type N8nRespnce struct {
+type N8nResponse struct {
 	TodoList []Todos `json:"todo_list"`
 }
 
-func GetTodos() {
+func GetTodos() error {
 	todo := Todos{}
 	data, err := todo.get()
-	if err != nil {
-		slog.Error(err.Error())
-	}
 	for _, v := range data.TodoList {
 		fmt.Printf("Id: %v - Task: %s\n", v.Id, v.Task)
 	}
+	return err
 }
 
-func AddTask(task string) {
+func AddTask(task string) error {
 	todo := Todos{Task: task}
-	if err := todo.post(); err != nil {
-		slog.Error(err.Error())
-	}
+	err := todo.post()
+	return err
 }
 
-func UpdateTask(id int, task string) {
+func UpdateTask(id int, task string) error {
 	todo := Todos{Id: id}
 	if task != "" {
 		todo.Task = task
 	}
-	if err := todo.put(); err != nil {
-		slog.Error(err.Error())
-	}
+	err := todo.put()
+	return err
 }
 
-func DeleteTask(id int) {
+func DeleteTask(id int) error {
 	todo := Todos{Id: id}
-	if err := todo.delete(); err != nil {
-		slog.Error(err.Error())
-	}
+	err := todo.delete()
+	return err
 }
 
-func runner(command string) error {
-	script := fmt.Sprintf("%s %s", app_ui, command)
+func Default() error {
+	app_ui, err := getTemplate()
+	if err != nil {
+		return err
+	}
+	script := fmt.Sprintf("%s todo_start", app_ui)
 	ctx, cancel := context.WithTimeout(
 		context.Background(),
 		time.Minute*5,
@@ -71,8 +66,4 @@ func runner(command string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
-}
-
-func Default() error {
-	return runner("todo_start")
 }
