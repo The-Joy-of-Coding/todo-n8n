@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	_ "embed"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,26 +13,21 @@ import (
 )
 
 type configDefault struct {
-	URLENV  string `json:"urlEnv"`
-	URL     string `json:"url"`
-	Timeout int    `json:"timeout"`
+	URLENV  string
+	Timeout int
 }
 
 type Test struct {
 	Buff *bytes.Buffer
 }
 
-var (
-	//go:embed defaults.json
-	file     []byte
-	_default configDefault
-)
+var _default = configDefault{
+	URLENV:  "API_URL",
+	Timeout: 10,
+}
 
 func init() {
 	SetLogger(false)
-	if err := json.Unmarshal(file, &_default); err != nil {
-		slog.Error("failed to unmarshal defaults", "error", err)
-	}
 	_ = LoadEnv(".env") || LoadEnv("../.env")
 }
 
@@ -69,7 +63,7 @@ func GetURL(key string) string {
 	val, err := GetEnv(key)
 	if err != nil {
 		slog.Error("No valid url found!", "key", key)
-		val, err = GetEnv("API_URL")
+		val, err = GetEnv(_default.URLENV)
 		if err != nil {
 			return "http://localhost:5678"
 		}
