@@ -8,27 +8,35 @@ import (
 )
 
 func main() {
-	var isCommand bool
-	getTasks := flag.Bool("get", false, "Returns all the pending todos")
-	addTask := flag.String("add", "", "Give task details to add to todo")
-	deleteTask := flag.Int("delete", 0, "Give task id to delete the todo")
-	flag.Parse()
-	if *addTask != "" {
-		module.AddTask(*addTask)
-		isCommand = true
-	}
-	if *deleteTask != 0 {
-		module.DeleteTask(*deleteTask)
-		isCommand = true
-	}
-	if *getTasks {
-		module.GetTodos()
-		isCommand = true
-	}
+	isCommand := getArgs()
 	if isCommand {
 		return
 	}
 	if err := module.Default(); err != nil {
 		slog.Error(err.Error())
 	}
+}
+
+func getArgs() bool {
+	var (
+		listTasks  = flag.Bool("list", false, "List all pending tasks")
+		addTask    = flag.String("add", "", "Add a new task description")
+		checkTask  = flag.Int("id", -1, "The ID of the task to act upon")
+		updateTask = flag.String("update", "", "New text for the task")
+		deleteTask = flag.Int("delete", -1, "Delete the task by ID")
+	)
+	flag.Parse()
+	switch {
+	case *addTask != "":
+		module.AddTask(*addTask)
+	case *deleteTask != -1:
+		module.DeleteTask(*deleteTask)
+	case *checkTask != -1:
+		module.UpdateTask(*checkTask, *updateTask)
+	case *listTasks:
+		module.GetTodos()
+	default:
+		return false
+	}
+	return true
 }
