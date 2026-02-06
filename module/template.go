@@ -14,7 +14,7 @@ func getTemplate() (string, error) {
 	err := fs.WalkDir(
 		scripts, "template",
 		func(path string, d fs.DirEntry, err error) error {
-			return dirFunc(path, d, builder, err)
+			return dirFunc(path, d, &builder, err)
 		})
 	if err != nil {
 		return "", err
@@ -22,7 +22,7 @@ func getTemplate() (string, error) {
 	return builder.String(), nil
 }
 
-func dirFunc(path string, d fs.DirEntry, builder strings.Builder, err error) error {
+func dirFunc(path string, d fs.DirEntry, builder *strings.Builder, err error) error {
 	if err != nil {
 		return err
 	}
