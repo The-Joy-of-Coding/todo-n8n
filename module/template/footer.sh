@@ -11,3 +11,11 @@ todo_footer() {
   tput cup "$row" 2
   echo "[q] Quit"
 }
+
+search() {
+  # searches records
+}
+
+update() {
+  # will update the todo
+}

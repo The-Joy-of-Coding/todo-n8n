@@ -19,3 +19,11 @@ ${WHITE}   ╚═╝     ╚══════╝  ╚═════╝   ╚�
   done <<< "$logo"
   printf "${NC}"
 }
+
+output_log() {
+  # this is for output
+}
+
+error_log() {
+  # this is for errors 
+}

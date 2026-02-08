@@ -55,3 +55,7 @@ perform_action() {
     esac
   fi
 }
+
+tab_switch() {
+  # will switch mode between input, outputs and menu.
+}
