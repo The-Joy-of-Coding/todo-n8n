@@ -20,10 +20,14 @@ ${WHITE}   ╚═╝     ╚══════╝  ╚═════╝   ╚�
   printf "${NC}"
 }
 
-output_log() {
-  # this is for output
-}
-
-error_log() {
-  # this is for errors 
-}
+# output_log() {
+#   # this is for output
+# }
+#
+# error_log() {
+#   # this is for errors 
+# }
+#
+# list_of_shame() {
+#   # this is for tasks that are still pending over time.
+# }

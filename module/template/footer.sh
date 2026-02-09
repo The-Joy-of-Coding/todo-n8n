@@ -12,10 +12,10 @@ todo_footer() {
   echo "[q] Quit"
 }
 
-search() {
-  # searches records
-}
-
-update() {
-  # will update the todo
-}
+# search() {
+#   # searches records
+# }
+#
+# update() {
+#   # will update the todo
+# }

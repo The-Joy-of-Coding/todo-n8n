@@ -26,7 +26,7 @@ settings_todo() {
   echo "go to $N8N_URL"
 }
 
-input_placeholder() {
-  # this will take the input
-}
+# input_placeholder() {
+#   # this will take the input
+# }
 

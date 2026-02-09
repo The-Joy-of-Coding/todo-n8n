@@ -56,6 +56,6 @@ perform_action() {
   fi
 }
 
-tab_switch() {
-  # will switch mode between input, outputs and menu.
-}
+# tab_switch() {
+#   # will switch mode between input, outputs and menu.
+# }
