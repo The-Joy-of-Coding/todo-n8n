@@ -10,18 +10,31 @@ err() {
 
 export INSECURE_API="http://localhost"
 export SECURE_API="https://example.com"
+export BINARY_NAME="todo-n8n"
 
 case "$1" in
   test)
     info "Running tests..."
     shift
-    go test ./... "$@" || err "Test Failed!";;
+    go test ./... "$@" || err "Test Failed!"
+    ;;
   build)
-    info "Building binary: todo-n8n"
-    go build -o todo-n8n . || err "Build failed.";;
+    info "Building binary: $BINARY_NAME"
+    go build -ldflags="-s -w" -o "$BINARY_NAME" . || err "Build failed."
+    SIZE_BEFORE=$(du -m "$BINARY_NAME" | cut -f1)
+    info "Compressing binary..."
+    upx -1 "$BINARY_NAME" > /dev/null 2>&1 || err "Compression failed."
+    SIZE_AFTER=$(du -m "$BINARY_NAME" | cut -f1)
+    echo -e "\033[1;32m[DONE]\033[0m Size reduced: ${SIZE_BEFORE}MB -> ${SIZE_AFTER}MB"
+    ;;
+  rm)
+    info "Removing binary: $BINARY_NAME"
+    rm -f "$BINARY_NAME"
+    ;;
   run)
     shift
-    go run . "$@";;
+    go run . "$@"
+    ;;
   *)
     echo "Usage: $0 {test|build|run} [options]"
     echo ""
