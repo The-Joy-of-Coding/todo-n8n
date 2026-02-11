@@ -124,6 +124,7 @@ func (t *Transport) createRequest(method string, body any) *Transport {
 	return t
 }
 
+// Need to add a queue system and a temp cache to improve performance
 func (t *Transport) fetch() *Transport {
 	t.request.Header.Add("Content-Type", "application/json")
 	t.request.Header.Add(header, key)
