@@ -54,7 +54,7 @@ func TestParseData(t *testing.T) {
 				trans.response = res
 			}
 			var result MockResponse
-			err := trans.ParseData(&result)
+			err := trans.validate(&result)
 			if (err != nil) != tc.wantErr {
 				t.Errorf("ParseData() error = %v, wantErr %v", err, tc.wantErr)
 			}

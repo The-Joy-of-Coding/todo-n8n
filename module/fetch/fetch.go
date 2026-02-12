@@ -81,23 +81,24 @@ func (t *Transport) fetch() *Transport {
 	return t
 }
 
-func (t *Transport) ParseData(target any) error {
-	if t.error != nil {
-		return t.error
+func (t *Transport) validate(target any) error {
+	if target == nil {
+		t.error = fmt.Errorf("Target is empty!")
 	}
 	if t.response == nil || t.response.Body == nil {
-		err := "no response body available to parse"
-		slog.Error(err)
-		return fmt.Errorf("%s", err)
+		t.error = fmt.Errorf("no response body available to parse")
 	}
-	defer t.response.Body.Close()
 	if t.response.StatusCode >= 400 {
-		err := fmt.Errorf("server returned error: %d", t.response.StatusCode)
-		slog.Error(err.Error())
-		return err
+		t.error = fmt.Errorf("server returned error: %d", t.response.StatusCode)
 	}
-	if target == nil {
-		return fmt.Errorf("Target is empty!")
+	return t.parseData(target)
+}
+
+func (t *Transport) parseData(target any) error {
+	defer t.response.Body.Close()
+	if t.error != nil {
+		slog.Error(t.error.Error())
+		return t.error
 	}
 	bodyBytes, err := io.ReadAll(t.response.Body)
 	if err != nil {

@@ -23,7 +23,7 @@ func (t *Todos) Get() (N8nResponse, error) {
 	return n8n, tr.
 		createRequest("GET", nil).
 		fetch().
-		ParseData(&n8n)
+		validate(&n8n)
 }
 
 func (t *Todos) Post() error {
@@ -32,7 +32,7 @@ func (t *Todos) Post() error {
 	err := tr.
 		createRequest("POST", t).
 		fetch().
-		ParseData(&res)
+		validate(&res)
 	if err != nil {
 		return err
 	}
@@ -48,7 +48,7 @@ func (t *Todos) Put() error {
 	err := tr.
 		createRequest("PUT", t).
 		fetch().
-		ParseData(&res)
+		validate(&res)
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (t *Todos) Delete() error {
 	err := tr.
 		createRequest("DELETE", t).
 		fetch().
-		ParseData(&res)
+		validate(&res)
 	if err != nil {
 		return err
 	}
