@@ -7,24 +7,14 @@ import (
 	"os"
 	"os/exec"
 	"time"
+
+	"todo-n8n/module/fetch"
+	"todo-n8n/module/template"
 )
 
-type Todos struct {
-	Id          int    `json:"id"`
-	Task        string `json:"task"`
-	Priority    int    `json:"priority"`
-	ListOfShame bool   `json:"list_of_shame"`
-	Deadline    string `json:"deadline"`
-	HallOfFame  bool   `json:"hall_of_fame"`
-}
-
-type N8nResponse struct {
-	TodoList []Todos `json:"todo_list"`
-}
-
 func GetTodos() error {
-	todo := Todos{}
-	data, err := todo.get()
+	todo := fetch.Todos{}
+	data, err := todo.Get()
 	for _, v := range data.TodoList {
 		fmt.Printf("Id: %v - Task: %s\n", v.Id, v.Task)
 	}
@@ -32,28 +22,28 @@ func GetTodos() error {
 }
 
 func AddTask(task string) error {
-	todo := Todos{Task: task}
-	err := todo.post()
+	todo := fetch.Todos{Task: task}
+	err := todo.Post()
 	return err
 }
 
 func UpdateTask(id int, task string) error {
-	todo := Todos{Id: id}
+	todo := fetch.Todos{Id: id}
 	if task != "" {
 		todo.Task = task
 	}
-	err := todo.put()
+	err := todo.Put()
 	return err
 }
 
 func DeleteTask(id int) error {
-	todo := Todos{Id: id}
-	err := todo.delete()
+	todo := fetch.Todos{Id: id}
+	err := todo.Delete()
 	return err
 }
 
 func Default() error {
-	app_ui, err := getTemplate()
+	app_ui, err := template.GetTemplate()
 	if err != nil {
 		return err
 	}
