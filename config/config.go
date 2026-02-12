@@ -28,7 +28,7 @@ var _default = configDefault{
 
 func init() {
 	SetLogger(false)
-	_ = LoadEnv(".env") || LoadEnv("../.env")
+	_ = LoadEnv(".env") || LoadEnv("../.env") || LoadEnv("../../.env")
 }
 
 func LoadEnv(filename string) bool {
