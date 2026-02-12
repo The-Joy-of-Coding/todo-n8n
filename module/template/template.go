@@ -6,13 +6,13 @@ import (
 	"strings"
 )
 
-//go:embed *.sh
+//go:embed scripts/*.sh
 var scripts embed.FS
 
 func GetTemplate() (string, error) {
 	var builder strings.Builder
 	err := fs.WalkDir(
-		scripts, "template",
+		scripts, "scripts",
 		func(path string, d fs.DirEntry, err error) error {
 			return dirFunc(path, d, &builder, err)
 		})
