@@ -42,6 +42,10 @@ func DeleteTask(id int) error {
 	return err
 }
 
+func CommitmentCalender() []int {
+	return []int{}
+}
+
 func Default() error {
 	app_ui, err := template.GetTemplate()
 	if err != nil {
