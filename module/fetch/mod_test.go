@@ -103,3 +103,50 @@ func TestRequest(t *testing.T) {
 		}
 	})
 }
+
+func test_validate(t *testing.T) {
+	type Tests struct {
+		Name      string
+		Input     Todos
+		WantError bool
+	}
+	tests := []Tests{
+		{
+			Name: "Too short (4 words)",
+			Input: Todos{
+				Task: "This is too short.",
+			},
+			WantError: true,
+		},
+		{
+			Name: "Minimum words (5 words)",
+			Input: Todos{
+				Task: "This task has five words.",
+			},
+			WantError: true,
+		},
+		{
+			Name: "Valid length",
+			Input: Todos{
+				Task: "This is a task with more than five words but less than fifty.",
+			},
+			WantError: false,
+		},
+		{
+			Name: "Too long (51 words)",
+			Input: Todos{
+				Task: "lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur",
+			},
+			WantError: true,
+		},
+	}
+	testFunc := func(test Tests, t *testing.T) {
+		err := test.Input.Validate()
+		if (err != nil) != test.WantError {
+			t.Errorf("Validate() error = %v, wantErr %v", err, test.WantError)
+		}
+	}
+	for _, test := range tests {
+		testFunc(test, t)
+	}
+}
