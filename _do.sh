@@ -42,5 +42,6 @@ case "$1" in
     echo "  test   Run all tests (pass -v for verbose)"
     echo "  build  Compile the Go binary"
     echo "  run    Execute the app (pass -add, -list, etc.)"
+    echo "  rm     Removes the built binary"
     exit 1
 esac
