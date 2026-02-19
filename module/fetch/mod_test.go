@@ -18,13 +18,13 @@ func TestFetch(t *testing.T) {
 	defer server.Close()
 	buff := config.SetLogger(true)
 	req, _ := http.NewRequest("GET", server.URL, nil)
-	trans := Transport{request: req}
+	trans := Transport{Request: req}
 	trans.fetch()
-	if trans.response == nil {
+	if trans.Response == nil {
 		t.Fatalf("Fetch failed: response is nil. Logs: %s", buff.Buff.String())
 	}
-	if trans.response.StatusCode != http.StatusOK {
-		t.Errorf("Expected 200, got %d", trans.response.StatusCode)
+	if trans.Response.StatusCode != http.StatusOK {
+		t.Errorf("Expected 200, got %d", trans.Response.StatusCode)
 	}
 }
 
@@ -51,7 +51,7 @@ func TestParseData(t *testing.T) {
 					StatusCode: 200,
 					Body:       io.NopCloser(strings.NewReader(tc.json)),
 				}
-				trans.response = res
+				trans.Response = res
 			}
 			var result MockResponse
 			err := trans.validate(&result)
@@ -104,7 +104,7 @@ func TestRequest(t *testing.T) {
 	})
 }
 
-func test_validate(t *testing.T) {
+func TestValidate(t *testing.T) {
 	type Tests struct {
 		Name      string
 		Input     Todos

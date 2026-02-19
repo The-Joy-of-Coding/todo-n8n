@@ -10,13 +10,10 @@ import (
 	"os"
 
 	"todo-n8n/config"
+	"todo-n8n/module/types"
 )
 
-type Transport struct {
-	request  *http.Request
-	response *http.Response
-	error    error
-}
+type Transport types.Transport
 
 var (
 	client http.Client = http.Client{
@@ -41,7 +38,7 @@ func init() {
 }
 
 func (t *Transport) createRequest(method string, body any) *Transport {
-	if t.error != nil {
+	if t.Error != nil {
 		return t
 	}
 	var jsonBody []byte
@@ -50,7 +47,7 @@ func (t *Transport) createRequest(method string, body any) *Transport {
 		jsonBody, err = json.Marshal(body)
 		if err != nil {
 			slog.Error(err.Error())
-			t.error = err
+			t.Error = err
 			return t
 		}
 	}
@@ -60,53 +57,53 @@ func (t *Transport) createRequest(method string, body any) *Transport {
 	)
 	if err != nil {
 		slog.Error(err.Error())
-		t.error = err
+		t.Error = err
 		return t
 	}
-	t.request = req
+	t.Request = req
 	return t
 }
 
 // Need to add a queue system and a temp cache to improve performance
 func (t *Transport) fetch() *Transport {
-	if t.request == nil {
+	if t.Request == nil {
 		slog.Info("The Request is empty!")
 		return nil
 	}
-	t.request.Header.Add("Content-Type", "application/json")
-	t.request.Header.Add(header, key)
-	resp, err := client.Do(t.request)
+	t.Request.Header.Add("Content-Type", "application/json")
+	t.Request.Header.Add(header, key)
+	resp, err := client.Do(t.Request)
 	if err != nil {
 		slog.Error(err.Error())
-		t.error = err
+		t.Error = err
 		return t
 	}
-	t.response = resp
+	t.Response = resp
 	return t
 }
 
 func (t *Transport) validate(target any) error {
 	if target == nil {
-		t.error = fmt.Errorf("Target is empty!")
+		t.Error = fmt.Errorf("Target is empty!")
 	}
-	if t.response == nil || t.response.Body == nil {
-		t.error = fmt.Errorf("no response body available to parse")
+	if t.Response == nil || t.Response.Body == nil {
+		t.Error = fmt.Errorf("no response body available to parse")
 	}
-	if t.response != nil && t.response.StatusCode >= 400 {
-		t.error = fmt.Errorf("server returned error: %d", t.response.StatusCode)
+	if t.Response != nil && t.Response.StatusCode >= 400 {
+		t.Error = fmt.Errorf("server returned error: %d", t.Response.StatusCode)
 	}
 	return t.parseData(target)
 }
 
 func (t *Transport) parseData(target any) error {
-	if t.response != nil {
-		defer t.response.Body.Close()
+	if t.Response != nil {
+		defer t.Response.Body.Close()
 	}
-	if t.error != nil {
-		slog.Error(t.error.Error())
-		return t.error
+	if t.Error != nil {
+		slog.Error(t.Error.Error())
+		return t.Error
 	}
-	bodyBytes, err := io.ReadAll(t.response.Body)
+	bodyBytes, err := io.ReadAll(t.Response.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read body: %w", err)
 	}

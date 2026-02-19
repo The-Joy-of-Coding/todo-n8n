@@ -2,23 +2,14 @@ package fetch
 
 import (
 	"fmt"
+
+	"todo-n8n/module/types"
 )
 
-type Todos struct {
-	Id          int    `json:"id"`
-	Task        string `json:"task"`
-	Priority    int    `json:"priority"`
-	ListOfShame bool   `json:"list_of_shame"`
-	Deadline    string `json:"deadline"`
-	HallOfFame  bool   `json:"hall_of_fame"`
-}
+type Todos types.Todos
 
-type N8nResponse struct {
-	TodoList []Todos `json:"todo_list"`
-}
-
-func (t *Todos) Get() (N8nResponse, error) {
-	var n8n N8nResponse
+func (t *Todos) Get() (types.N8nResponse, error) {
+	var n8n types.N8nResponse
 	tr := Transport{}
 	return n8n, tr.
 		createRequest("GET", nil).
