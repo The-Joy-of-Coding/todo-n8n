@@ -39,6 +39,7 @@ func init() {
 
 func (t *Transport) createRequest(method string, body any) *Transport {
 	if t.Error != nil {
+		t = &Transport{}
 		return t
 	}
 	var jsonBody []byte
