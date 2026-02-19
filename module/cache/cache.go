@@ -1,16 +1,15 @@
 package cache
 
-type cache map[string]any
+import "todo-n8n/module/types"
 
-var (
-	storage cache
-	log     string
-)
+type Storage types.Todos
 
-func set(data cache) {
-	storage = data
-}
+var cache Storage
 
-func get() cache {
-	return storage
-}
+func (s *Storage) writeLog(req string) {}
+
+func (s *Storage) Get() {}
+
+func (s *Storage) Set() {}
+
+func (s *Storage) pending() {}

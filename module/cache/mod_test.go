@@ -2,8 +2,8 @@ package cache
 
 import "testing"
 
-func Test_Set(t *testing.T) {}
+func TestSet(t *testing.T) {}
 
-func Test_Get(t *testing.T) {}
+func TestGet(t *testing.T) {}
 
-func Test_Log(t *testing.T) {}
+func TestLog(t *testing.T) {}

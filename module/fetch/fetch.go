@@ -116,3 +116,5 @@ func (t *Transport) parseData(target any) error {
 	}
 	return nil
 }
+
+func (t *Transport) processPendingReq() {}
