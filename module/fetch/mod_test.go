@@ -147,6 +147,30 @@ func test_validate(t *testing.T) {
 		}
 	}
 	for _, test := range tests {
-		testFunc(test, t)
+		t.Run(test.Name, func(t *testing.T) {
+			testFunc(test, t)
+		})
+	}
+}
+
+func TestFormate(t *testing.T) {
+	type testStruct struct {
+		Name     string
+		Input    string
+		Expected string
+	}
+	tests := []testStruct{
+		{"Empty string", "", ""},
+		{"Whitespace only", "   ", ""},
+		{"Already formatted", "Task task", "Task task"},
+		{"Lowercase start", "task task", "Task task"},
+		{"With whitespace", "  task task  ", "Task task"},
+	}
+	testFunc := func(test testStruct, t *testing.T) {
+	}
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			testFunc(test, t)
+		})
 	}
 }

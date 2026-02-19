@@ -69,6 +69,10 @@ func (t *Transport) createRequest(method string, body any) *Transport {
 
 // Need to add a queue system and a temp cache to improve performance
 func (t *Transport) fetch() *Transport {
+	if t.request == nil {
+		slog.Info("The Request is empty!")
+		return nil
+	}
 	t.request.Header.Add("Content-Type", "application/json")
 	t.request.Header.Add(header, key)
 	resp, err := client.Do(t.request)
@@ -88,14 +92,16 @@ func (t *Transport) validate(target any) error {
 	if t.response == nil || t.response.Body == nil {
 		t.error = fmt.Errorf("no response body available to parse")
 	}
-	if t.response.StatusCode >= 400 {
+	if t.response != nil && t.response.StatusCode >= 400 {
 		t.error = fmt.Errorf("server returned error: %d", t.response.StatusCode)
 	}
 	return t.parseData(target)
 }
 
 func (t *Transport) parseData(target any) error {
-	defer t.response.Body.Close()
+	if t.response != nil {
+		defer t.response.Body.Close()
+	}
 	if t.error != nil {
 		slog.Error(t.error.Error())
 		return t.error
