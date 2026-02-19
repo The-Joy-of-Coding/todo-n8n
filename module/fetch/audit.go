@@ -21,11 +21,15 @@ func (t *Todos) Validate() error {
 }
 
 func (t *Todos) Formate() {
-	t.Task = strings.TrimSpace(t.Task)
-	if len(t.Task) == 0 {
+	t.Task = strings.Join(strings.Fields(t.Task), " ")
+	if t.Task == "" {
 		return
 	}
 	task := []rune(t.Task)
 	task[0] = unicode.ToUpper(task[0])
+	last := task[len(task)-1]
+	if !unicode.IsPunct(last) {
+		task = append(task, '.')
+	}
 	t.Task = string(task)
 }
