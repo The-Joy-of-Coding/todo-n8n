@@ -1,20 +1,19 @@
 package config
 
 import (
-	"bufio"
 	"bytes"
-	_ "embed"
 	"fmt"
+	"io"
 	"log/slog"
-	"net/http"
 	"os"
 	"strings"
 	"time"
 )
 
 type configDefault struct {
-	URLENV  string
-	Timeout int
+	URL_ENV     string
+	DEFAULT_URL string
+	Timeout     int
 }
 
 type Test struct {
@@ -22,33 +21,9 @@ type Test struct {
 }
 
 var _default = configDefault{
-	URLENV:  "API_URL",
-	Timeout: 10,
-}
-
-func init() {
-	SetLogger(false)
-	_ = LoadEnv(".env") || LoadEnv("../.env") || LoadEnv("../../.env")
-}
-
-func LoadEnv(filename string) bool {
-	f, err := os.Open(filename)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		parts := strings.SplitN(line, "=", 2)
-		if len(parts) == 2 {
-			os.Setenv(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
-		}
-	}
-	return true
+	DEFAULT_URL: "http://localhost:5678",
+	URL_ENV:     "API_URL",
+	Timeout:     10,
 }
 
 func GetEnv(env string) (string, error) {
@@ -59,17 +34,16 @@ func GetEnv(env string) (string, error) {
 	return res, nil
 }
 
+func (c *configDefault) logError(log string, args ...any) string {
+	slog.Error(log, args...)
+	return c.DEFAULT_URL
+}
+
 func GetURL(key string) string {
 	val, err := GetEnv(key)
-	if err != nil {
-		slog.Error("No valid url found!", "key", key)
-		val, err = GetEnv(_default.URLENV)
-		if err != nil {
-			return "http://localhost:5678"
-		}
-	}
-	if val == "" {
-		return "http://localhost:5678"
+	if err != nil || val == "" {
+		slog.Warn("Given Api is empty!")
+		return _default.logError("API url is empty, using the default url!")
 	}
 	if !strings.HasPrefix(val, "https://") {
 		slog.Warn("Using insecure api endpoint.")
@@ -77,40 +51,21 @@ func GetURL(key string) string {
 	return val
 }
 
-func ping(targetURL string) (bool, int) {
-	if targetURL == "" {
-		slog.Error("URL is empty, please provide a proper url!")
-		return false, 0
-	}
-	client := http.Client{Timeout: GetTimeout()}
-	resp, err := client.Get(targetURL)
-	if err != nil {
-		slog.Error("Network error occured, please try again later or check again!")
-		return false, 0
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 400 {
-		slog.Error("URL is invalid, please check the url provided.", "status", resp.StatusCode)
-		return false, resp.StatusCode
-	}
-	return true, resp.StatusCode
-}
-
 func GetTimeout() time.Duration {
-	if _default.Timeout > 0 {
-		return time.Duration(_default.Timeout) * time.Second
-	}
-	return 10 * time.Second
+	return time.Duration(_default.Timeout) * time.Second
 }
 
 func SetLogger(test bool) *Test {
 	var buff bytes.Buffer
-	var handler slog.Handler
+	var writer io.Writer
 	if test {
-		handler = slog.NewJSONHandler(&buff, nil)
+		writer = &buff
 	} else {
-		handler = slog.NewJSONHandler(os.Stderr, nil)
+		writer = os.Stderr
 	}
+	handler := slog.NewJSONHandler(
+		writer, nil,
+	)
 	slog.SetDefault(
 		slog.New(handler),
 	)
