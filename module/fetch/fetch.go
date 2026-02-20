@@ -7,7 +7,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"todo-n8n/config"
 	"todo-n8n/module/types"
@@ -28,16 +27,16 @@ func init() {
 	header, err = config.GetEnv("AUTH_HEADER")
 	if err != nil {
 		slog.Error(err.Error())
-		os.Exit(1)
+		header = "HEADER"
 	}
 	key, err = config.GetEnv("AUTH_KEY")
 	if err != nil {
 		slog.Error(err.Error())
-		os.Exit(1)
+		key = "KEY"
 	}
 }
 
-func (t *Transport) createRequest(method string, body any) *Transport {
+func (t *Transport) createRequest(url string, method string, body any) *Transport {
 	if t.Error != nil {
 		t = &Transport{}
 		return t
@@ -53,7 +52,7 @@ func (t *Transport) createRequest(method string, body any) *Transport {
 		}
 	}
 	req, err := http.NewRequest(
-		method, config.GetURL("API_URL"),
+		method, config.GetURL(url),
 		bytes.NewReader(jsonBody),
 	)
 	if err != nil {
