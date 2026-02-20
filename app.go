@@ -4,10 +4,12 @@ import (
 	"flag"
 	"log/slog"
 
+	"todo-n8n/config"
 	"todo-n8n/module"
 )
 
 func main() {
+	config.SetLogger(false)
 	isCommand := getArgs()
 	if isCommand {
 		return
