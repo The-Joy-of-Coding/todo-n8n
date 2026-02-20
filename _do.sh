@@ -11,6 +11,7 @@ err() {
 export INSECURE_API="http://localhost"
 export SECURE_API="https://example.com"
 export BINARY_NAME="todo-n8n"
+export $(cat .env | xargs)
 
 case "$1" in
   test)
