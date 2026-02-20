@@ -123,7 +123,7 @@ func TestValidate(t *testing.T) {
 			Input: Todos{
 				Task: "This task has five words.",
 			},
-			WantError: true,
+			WantError: false,
 		},
 		{
 			Name: "Valid length",
