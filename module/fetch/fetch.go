@@ -64,7 +64,6 @@ func (t *Transport) createRequest(url string, method string, body any) *Transpor
 	return t
 }
 
-// Need to add a queue system and a temp cache to improve performance
 func (t *Transport) fetch() *Transport {
 	if t.Request == nil {
 		slog.Info("The Request is empty!")
@@ -117,4 +116,6 @@ func (t *Transport) parseData(target any) error {
 	return nil
 }
 
-func (t *Transport) processPendingReq() {}
+func (t *Transport) processPendingReq() {
+	// this will use the cache to process requests.
+}
